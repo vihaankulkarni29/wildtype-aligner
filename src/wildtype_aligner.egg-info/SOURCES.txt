@@ -1,0 +1,13 @@
+LICENSE
+README.md
+pyproject.toml
+setup.cfg
+src/wildtype_aligner/__init__.py
+src/wildtype_aligner/cli.py
+src/wildtype_aligner/engine.py
+src/wildtype_aligner.egg-info/PKG-INFO
+src/wildtype_aligner.egg-info/SOURCES.txt
+src/wildtype_aligner.egg-info/dependency_links.txt
+src/wildtype_aligner.egg-info/entry_points.txt
+src/wildtype_aligner.egg-info/requires.txt
+src/wildtype_aligner.egg-info/top_level.txt

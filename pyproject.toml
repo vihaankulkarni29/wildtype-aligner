@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "wildtype-aligner"
+version = "0.1.0"
+description = "A bioinformatics tool for reference-driven pairwise sequence alignments with dual-mode referencing"
+authors = [
+    {name = "Vihaan Kulkarni", email = "vihaan.kulkarni@wildtypealigner.com"},
+]
+dependencies = [
+    "biopython",
+]
+requires-python = ">=3.8"
+
+[project.scripts]
+wildtype-aligner = "wildtype_aligner.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-dir]
+"" = "src"
