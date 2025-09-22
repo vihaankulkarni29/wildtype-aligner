@@ -8,7 +8,7 @@ logging.basicConfig(level=logging.INFO)
 class AlignmentEngine:
     def __init__(self):
         # Set email for NCBI Entrez
-        Entrez.email = "vihaan.kulkarni@wildtypealigner.com"  # Replace with your actual email
+        Entrez.email = "vihaankulkarni29@gmail.com"  # User's email for NCBI compliance
         # Initialize aligner
         self.aligner = PairwiseAligner()
         self.aligner.mode = 'global'  # Use global alignment
