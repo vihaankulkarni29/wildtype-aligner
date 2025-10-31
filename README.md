@@ -1,5 +1,7 @@
 # WildTypeAligner
 
+![CI](https://github.com/vihaankulkarni29/wildtype-aligner/actions/workflows/ci.yml/badge.svg)
+
 ## What is WildTypeAligner?
 
 WildTypeAligner is a specialized bioinformatics tool designed for researchers studying antimicrobial resistance. It helps you compare protein sequences from resistant bacteria against their "normal" (wild-type) counterparts to identify mutations that cause drug resistance.
@@ -13,6 +15,8 @@ WildTypeAligner is a specialized bioinformatics tool designed for researchers st
 - 📊 **Clear Mutation Reports**: Shows alignments in an easy-to-read format with scores, identities, and gap information
 - ⚡ **Batch Processing**: Analyze multiple proteins at once
 - 🧬 **Works with Any Bacteria**: From E. coli to Mycobacterium tuberculosis - any bacterial species
+- 🚀 **Parallel + Streaming**: Multi-core alignments with constant-memory streaming output for large jobs
+- 🧾 **Robust Reporting**: End-of-run success/failure summary and optional error log file
 
 ## Who Should Use This Tool?
 
@@ -73,6 +77,37 @@ If you have your own reference sequences:
 wildtype-aligner --sequences your_proteins.fasta --genus Escherichia --species coli --user-reference reference_protein.fasta --output-file results.txt
 ```
 
+### High-throughput mode (directory + batch + parallel)
+
+When you have many FASTA files (e.g., acrA/acrB/tolC split across genomes), use directory mode with batching and parallel workers:
+
+```bash
+wildtype-aligner \
+  --input-dir path/to/faa_dir \
+  --genus Escherichia --species coli \
+  --sepi --batch --workers 8 \
+  --output-file results.txt \
+  --error-log errors.log \
+  --entrez-email you@example.com \
+  --ncbi-api-key YOUR_NCBI_API_KEY \
+  --entrez-timeout 20 \
+  --max-retries 4 \
+  --log-level INFO
+```
+
+Notes:
+- Automatic reference caching: only one NCBI fetch per gene group.
+- Streaming is enabled automatically for large jobs when you provide `--output-file` (keeps memory constant).
+- A final summary is printed; detailed failures (if any) go to `--error-log`.
+
+### Environment variables
+
+Instead of flags, you can set these env vars:
+- `ENTREZ_EMAIL`: default email for NCBI Entrez
+- `NCBI_API_KEY`: API key for higher NCBI rate limits
+- `ENTREZ_TIMEOUT`: network timeout (seconds)
+- `ENTREZ_MAX_RETRIES`: retries on transient errors (default 3)
+
 ### Understanding the Results
 
 The output file contains alignment reports like this:
@@ -118,7 +153,7 @@ Let's say you have E. coli proteins that are resistant to tetracycline:
 
 ### "Internet connection error"
 - Make sure you have internet access for NCBI queries
-- NCBI has usage limits; wait a few minutes if you get rate-limited
+- NCBI has usage limits. Use `--ncbi-api-key`, set `--entrez-timeout`, and `--max-retries` to improve resilience
 
 ### "FASTA file format error"
 - Ensure your input file follows FASTA format:
