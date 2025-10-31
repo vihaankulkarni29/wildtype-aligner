@@ -1,2 +1,0 @@
-[console_scripts]
-wildtype-aligner = wildtype_aligner.cli:main
