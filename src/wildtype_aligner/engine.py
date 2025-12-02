@@ -930,6 +930,38 @@ class AlignmentEngine:
         # Fallback: return None
         return None
 
+    def _normalize_gene_name(self, gene_raw):
+        """
+        Normalize gene name for MG1655 reference lookup.
+        Handles aliases and naming conventions.
+        
+        Examples:
+            blaEC-5 -> ampC
+            mdf(A) -> mdfA
+            emrA_1 -> emrA
+        """
+        if not gene_raw:
+            return None
+        
+        # Strip trailing underscore + digits (e.g., emrA_1 -> emrA)
+        import re
+        gene = re.sub(r'_\d+$', '', gene_raw)
+        
+        # Apply known aliases for MG1655 lookup
+        aliases = {
+            'blaec-5': 'ampC',
+            'blaec': 'ampC',
+            'mdf(a)': 'mdfA',
+        }
+        
+        gene_lower = gene.lower()
+        if gene_lower in aliases:
+            normalized = aliases[gene_lower]
+            logging.info(f"Normalized gene '{gene}' -> '{normalized}' for MG1655 lookup")
+            return normalized
+        
+        return gene
+
     def _extract_gene_from_filename(self, filename):
         """
         Extract gene name from filename pattern.
@@ -937,8 +969,10 @@ class AlignmentEngine:
         - AP022811.1_acrB.faa -> acrB
         - AP022811.1_Escherichia_coli_acrA.faa -> acrA
         - CP001363.1_tolC.faa -> tolC
+        - NZ_CP107120_mdf(A)_1.faa -> mdf(A) -> mdfA (normalized)
+        - NZ_CP107120_blaEC-5.faa -> blaEC-5 -> ampC (normalized)
         
-        Returns gene name (e.g., 'acrA', 'acrB', 'tolC') or None if not found.
+        Returns normalized gene name or None if not found.
         """
         # Get basename without path and extension
         basename = os.path.splitext(os.path.basename(filename))[0]
@@ -951,15 +985,17 @@ class AlignmentEngine:
             return None
         
         # The gene name is typically the last part
-        # Handle both patterns:
-        # Pattern 1: accession_gene (e.g., AP022811.1_acrB)
-        # Pattern 2: accession_genus_species_gene (e.g., AP022811.1_Escherichia_coli_acrA)
+        # But if last part is a digit (e.g., _1), take second-to-last
+        # Handle: NZ_CP107120_mdf(A)_1 -> mdf(A)
         gene_name = parts[-1]
+        if gene_name.isdigit() and len(parts) >= 3:
+            gene_name = parts[-2]
         
-        # Validate gene name (basic check - should be alphanumeric, 3-10 chars)
-        if gene_name and len(gene_name) >= 3 and gene_name.isalnum():
+        # Allow alphanumeric plus special chars: - ( ) '
+        # Validate basic length
+        if gene_name and len(gene_name) >= 3:
             logging.info(f"Extracted gene '{gene_name}' from filename: {filename}")
-            return gene_name
+            return self._normalize_gene_name(gene_name)
         
         logging.warning(f"Invalid gene name '{gene_name}' extracted from: {filename}")
         return None
@@ -973,8 +1009,9 @@ class AlignmentEngine:
         - AP022811.1_acrB -> acrB
         - AP022811.1_Escherichia_coli_acrA -> acrA
         - CP001363.1_tolC -> tolC
+        - NZ_CP107120_mdf(A)_1 -> mdf(A) -> mdfA (normalized)
         
-        Returns gene name or None if not found.
+        Returns normalized gene name or None if not found.
         """
         # Split by underscore
         parts = sequence_id.split('_')
@@ -983,11 +1020,14 @@ class AlignmentEngine:
             return None
         
         # The gene name is typically the last part
+        # But if last part is a digit, take second-to-last
         gene_name = parts[-1]
+        if gene_name.isdigit() and len(parts) >= 3:
+            gene_name = parts[-2]
         
-        # Validate gene name (basic check - should be alphanumeric, 3-10 chars)
-        if gene_name and len(gene_name) >= 3 and gene_name.isalnum():
-            return gene_name
+        # Allow special chars, validate basic length
+        if gene_name and len(gene_name) >= 3:
+            return self._normalize_gene_name(gene_name)
         
         return None
 
